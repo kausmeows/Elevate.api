@@ -10,4 +10,11 @@ urlpatterns = [
     path('elevate/show-all/',ElevatorSystemList.as_view(),name='show-all-sys'),
     # Show all elevators belonging to an elevator system
     path('elevate/<int:id>/show/',ElevatorsList.as_view(),name='elevator-list'),
+    
+    # Individual Elevators
+    # Show
+    path('elevate/<int:id>/elevator/<int:pk>/show/',ViewSingleElevator.as_view(),name='elevator-show'),
+    #update
+    path('elevate/<int:id>/elevator/<int:pk>/update/',UpdateSingleElevator.as_view(),name='elevator-update'),
+
 ]
