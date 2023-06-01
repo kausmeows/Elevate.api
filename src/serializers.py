@@ -21,6 +21,18 @@ class ElevatorRequestSerializer(serializers.ModelSerializer):
 
 
 class ElevatorRequestFullSerializer(serializers.ModelSerializer):
+    current_floor = serializers.SerializerMethodField()
     class Meta:
         model = ElevatorRequest
-        fields = '__all__'
+        fields = (
+            'id',
+            'current_floor',
+            'requested_floor',
+            'destination_floor',
+            'request_time',
+            'is_active',
+            'elevator',
+        )
+        
+    def get_current_floor(self, obj):
+        return obj.elevator.current_floor
