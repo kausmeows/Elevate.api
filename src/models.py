@@ -7,7 +7,7 @@ class ElevatorSystem(models.Model):
     number_of_elevators = models.PositiveIntegerField()
     
     def __str__(self) -> str:
-        return f"{self.name} Elevator System Number {self.id}"
+        return f"{self.system_name} Elevator System Number {self.id}"
 
 
 class Elevator(models.Model):
