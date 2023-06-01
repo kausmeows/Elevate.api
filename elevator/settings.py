@@ -1,4 +1,7 @@
 from pathlib import Path
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -79,7 +82,7 @@ DATABASES = {
        'ENGINE': 'django.db.backends.postgresql',
        'NAME': 'railway',
        'USER': 'postgres',
-       'PASSWORD': 'KZJ2OqCiSIJHlifW99L3',
+       'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
        'HOST': 'containers-us-west-83.railway.app',
        'PORT': '6125',
    }
