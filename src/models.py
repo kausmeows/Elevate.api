@@ -2,6 +2,10 @@ from django.db import models
 
 
 class ElevatorSystem(models.Model):
+    '''
+    The ElevatorSystem class represents an elevator system with a name, total number of floors, and
+    number of elevators.
+    '''
     system_name = models.CharField(max_length=25)
     total_floors = models.PositiveIntegerField()
     number_of_elevators = models.PositiveIntegerField()
@@ -11,6 +15,10 @@ class ElevatorSystem(models.Model):
 
 
 class Elevator(models.Model):
+    '''
+    The Elevator class represents an elevator in an elevator system with attributes such as current
+    floor, operational status, door status, and running status.
+    '''
     class RunningStatus(models.IntegerChoices):
         GOING_UP = 1
         NOT_MOVING = 0
@@ -28,6 +36,10 @@ class Elevator(models.Model):
 
 
 class ElevatorRequest(models.Model):
+    '''
+    The ElevatorRequest class represents a request made for an elevator to a specific floor with a
+    destination floor and a timestamp.
+    '''
     elevator = models.ForeignKey(Elevator, on_delete=models.CASCADE)
     requested_floor = models.PositiveSmallIntegerField()
     destination_floor = models.PositiveSmallIntegerField()
