@@ -149,7 +149,7 @@ Fetch the next destination floor for a given elevator
 ## Elevator Request
 User request targeted to a specific elevator. This can be improved further using model managers  to clean the invalid requests like request elevator in negative floor greater than maximum floor request an elevator that doesn't exist.
 
-`GET api/el-sys/{elevator-system-id}/elevator/{elevator-number}/req-current-status/`
+`GET api/system/{elevator-system-id}/elevator/{elevator-number}/req-current-status/`
 List all the requests for a given elevator. Requests already served can be filtered with is_active parameter set false, This is a URL parameter.
 
 #### Path Parameter
@@ -176,7 +176,7 @@ is_active ----> True/1 ---> All the pending requests by the elevator(True is cas
   }
 ]
 ```
-`POST api/el-sys/{elevator-system-id}/elevator/{elevator-number}/make-request/`
+`POST api/system/{elevator-system-id}/elevator/{elevator-number}/make-request/`
 Create a new request for a specific elevator, given its elevator system and elevator number with URL. The inputs of requested and destinatiom floor is sent with the form-data.
 
 #### Path Parameter
