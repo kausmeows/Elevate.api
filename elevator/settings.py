@@ -18,6 +18,11 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+ALLOWED_HOSTS = ['elevate-api.up.railway.app', 'localhost' , '*']
+
+CORS_ALLOWED_ORIGINS = ['https://elevate-api.up.railway.app/', 'http://localhost:3000' ]
+
+CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS
 
 # Application definition
 
