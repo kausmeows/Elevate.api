@@ -1,219 +1,112 @@
-from rest_framework import generics
+from rest_framework import viewsets
+from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.views import APIView
-
+from rest_framework.generics import get_object_or_404
 
 from .models import Elevator, ElevatorRequest, ElevatorSystem
-from django_filters.rest_framework import DjangoFilterBackend
-
 from .serializers import ElevatorRequestFullSerializer, ElevatorRequestSerializer, ElevatorSerializer, ElevatorSystemSerializer
 from utils.initiate_elevators import initiate_elevators
 
+class ElevatorSystemViewSet(viewsets.ModelViewSet):
+    """
+        This is a Django view that creates an elevator system and initiates elevators, and also shows
+        the elevators associated with a particular elevator system.
+        
+        :param request: The HTTP request object that contains information about the request being made,
+        such as the HTTP method, headers, and data
+        :return: The code is a part of a Django REST framework viewset.
+    """
+    queryset = ElevatorSystem.objects.all()
+    serializer_class = ElevatorSystemSerializer
 
-class ElevatorSystemList(generics.ListAPIView):
-	'''
-	This is a Django REST framework API view that lists all instances of the ElevatorSystem model using
-	the ElevatorSystemSerializer for serialization.
-	'''
-	queryset = ElevatorSystem.objects.all()
-	serializer_class = ElevatorSystemSerializer
-
-
-class CreateElevatorSystem(generics.CreateAPIView):
-	"""
-	This function creates an elevator system and initiates the elevators associated with it.
-		
-	:param serializer: The serializer is an instance of the ElevatorSystemSerializer class, which is
-	responsible for converting the data received in the request into a Python object and vice versa
-	"""
-	serializer_class = ElevatorSystemSerializer
-  
-	def perform_create(self, serializer):
-		elevator_system = serializer.save()
-
-		initiate_elevators(
-			number_of_elevators=serializer.data['number_of_elevators'],
-			system_id=elevator_system.id
-		)
-		
-class ElevatorsList(generics.ListAPIView):
-	"""
-	This function returns a queryset of Elevator objects filtered by the elevator system ID passed
-	as a parameter.
- 
-	:return: The `get_queryset` method is returning a queryset of `Elevator` objects filtered by the
-	`id` of the `elevator_system` associated with the `Elevator` objects. The serializer class used
-	to serialize the queryset is `ElevatorSerializer`.
-	"""
-	serializer_class = ElevatorSerializer
-
-	def get_queryset(self):
-		system_id = self.kwargs['id']
-		queryset = Elevator.objects.filter(elevator_system__id = system_id)
-
-		return queryset
-
-class ViewSingleElevator(generics.RetrieveAPIView):
-	"""
-	This function retrieves a specific Elevator object based on the system ID and elevator number
-	provided in the URL.
- 
-	:return: The `get_object` method is returning a single `Elevator` object that matches the
-	`system_id` and `elevator_number` specified in the URL. The method first filters the `Elevator`
-	queryset based on these parameters and then returns the first object in the resulting queryset.
-	"""
-	serializer_class = ElevatorSerializer
-
-	def get_object(self):
-		system_id = self.kwargs['id']
-		elevator_number = self.kwargs['pk']
-
-		queryset = Elevator.objects.filter(
-		elevator_system__id = system_id,
-		elevator_number = elevator_number
-		)
-
-		return queryset[0]
-	
-class UpdateSingleElevator(generics.UpdateAPIView):
-	"""
-	This function retrieves a specific Elevator object based on the system ID and elevator number
-	provided in the URL.
- 
-	:return: The `get_object` method is returning a single `Elevator` object that matches the
-	`system_id` and `elevator_number` specified in the URL. The method first filters the `Elevator`
-	queryset based on these parameters and then returns the first object in the resulting queryset.
-	"""
-	serializer_class = ElevatorSerializer
-
-	def get_object(self):
-		system_id = self.kwargs['id']
-		elevator_number = self.kwargs['pk']
-
-		queryset = Elevator.objects.filter(
-		elevator_system__id = system_id,
-		elevator_number = elevator_number
-		)
-
-		return queryset[0]
-
-	#overriding put method by patch
-	def put(self, request, *args, **kwargs):
-		return self.partial_update(request, *args, **kwargs)
-	
-	
-class CreateElevatorRequest(generics.CreateAPIView):
-	"""
-	This function overrides the perform_create method to save an elevator object based on system_id
-	and elevator_number.
-		
-	:param serializer: The serializer is an instance of the ElevatorRequestSerializer class, which
-	is used to convert the request data into a format that can be saved to the database
-	"""
-	serializer_class = ElevatorRequestSerializer
-
-	# Overriding the perform_create method of 'mixins.CreateModelMixin', Parent class of 'CreateAPIView'
-	def perform_create(self, serializer):
-		system_id = self.kwargs['id']
-		elevator_number = self.kwargs['pk']
-
-		queryset = Elevator.objects.filter(
-		elevator_system__id = system_id,
-		elevator_number = elevator_number
-		)
-		elevator_object = queryset[0]
-
-		serializer.save(elevator = elevator_object)
-		
-
-class ElevatorRequestList(generics.ListAPIView):
-	"""
-	This function returns a filtered queryset of ElevatorRequest objects based on the elevator
-	system ID and elevator number provided in the URL.
-		
-  	:return: The `get_queryset` method is returning a filtered queryset of `ElevatorRequest`
-	objects that are associated with a specific `Elevator` object. The `Elevator` object is
-	identified by the `system_id` and `elevator_number` parameters passed in the URL. The queryset
-	is filtered using the `filter` method to only include `ElevatorRequest` objects that have a
-	foreign key
-	"""
-	serializer_class = ElevatorRequestFullSerializer
-	filter_backends = [DjangoFilterBackend]
-	filterset_fields = ['is_active']
-
-	def get_queryset(self):
-		system_id = self.kwargs['id']
-		elevator_number = self.kwargs['pk']
-
-		elevator_object = Elevator.objects.filter(
-		elevator_system__id = system_id,
-		elevator_number = elevator_number
-		)
-
-		queryset = ElevatorRequest.objects.filter(elevator = elevator_object[0])
-		return queryset
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        elevator_system = serializer.save()
+        initiate_elevators(
+            number_of_elevators=serializer.data['number_of_elevators'],
+            system_id=elevator_system.id
+        )
+        return Response(serializer.data)
 
 
-class FetchDestination(APIView):
-	"""
-	This function retrieves information about a specific elevator and its pending requests.
-		
-	:param request: The HTTP request object
-	:param id: The id parameter is used to identify the elevator system to which the elevator belongs
-	:param pk: The "pk" parameter is a variable that stands for "primary key". It is commonly used in 
- 			   Django to refer to the unique identifier of a database record. In this specific code snippet,
-			   "pk" is used to represent the elevator number.
-		
-	:return: a Response object containing a dictionary with keys 'running' and 'details'. The value
-			 of 'running' is a boolean indicating whether the elevator is currently running or not, and the
-			 value of 'details' provides additional information about the elevator's status.
-	"""
-	def get(self, request, id, pk):
-		system_id = id
-		elevator_number = pk
+    @action(detail=True, methods=['get'])
+    def show_elevators(self, request, pk=None):
+        system_id = self.kwargs['pk']
+        elevators = Elevator.objects.filter(elevator_system_id=system_id)
+        serializer = ElevatorSerializer(elevators, many=True)
+        return Response(serializer.data)
 
-		elevator_object = Elevator.objects.filter(
-		elevator_system__id = system_id,
-		elevator_number = elevator_number
-		)
 
-		requests_pending = ElevatorRequest.objects.filter(
-		elevator = elevator_object[0],
-		is_active = True,
-		).order_by('request_time')
+class ElevatorViewSet(viewsets.ModelViewSet):
+    """
+        This is a Django viewset for managing Elevator objects, with actions for showing, updating,
+        getting destination, getting current status of requests, making requests, and getting the
+        appropriate serializer class.
+        :return: This code is defining several custom actions for a viewset for the `Elevator` model.
+        The `queryset` and `serializer_class` attributes are also defined.
+    """
+    queryset = Elevator.objects.all()
+    serializer_class = ElevatorSerializer
 
-		return_dict = {
+    @action(detail=True, methods=['get'])
+    def show(self, request, pk=None):
+        system_id = self.kwargs['id']
+        elevator_number = self.kwargs['pk']
+        elevator = Elevator.objects.get(elevator_system_id=system_id, elevator_number=elevator_number)
+        serializer = ElevatorSerializer(elevator)
+        return Response(serializer.data)
 
-		}
 
-		if elevator_object.count() !=1:
-			return_dict = {
-				'running' : False,
-				'details' : 'The Elevator number is incorrect'
-			}
-		
-		elif not elevator_object[0].is_operational:
-			return_dict = {
-				'running' : False,
-				'details' : 'The Elevator is not operational'
-			}
-			
-		elif requests_pending.count() == 0:
-			return_dict = {
-				'running' : False,
-				'details' : 'The Elevator is not running currently, No pending requests'
-			}
-			
-		elif requests_pending[0].requested_floor == elevator_object[0].current_floor:
-			return_dict = {
-				'running' : True,
-				'details' : str(requests_pending[0].destination_floor)
-			}
-			
-		else:
-			return_dict = {
-				'running' : True,
-				'details' : str(requests_pending[0].requested_floor)
-			}
+    @action(detail=True, methods=['put', 'patch'])
+    def custom_update(self, request, pk=None):
+        system_id = self.kwargs['id']
+        elevator_number = self.kwargs['pk']
+        elevator = Elevator.objects.get(elevator_system__id=system_id, elevator_number=elevator_number)
+        serializer = ElevatorSerializer(elevator, data=request.data, partial=True)  # `partial=True` allows partial updates
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)
 
-		return Response(return_dict)
+
+    @action(detail=True, methods=['get'])
+    def destination(self, request, id=None, pk=None):
+        elevator = self.get_object()
+
+        if not elevator.is_operational:
+            return Response({'running': False, 'details': 'The Elevator is not operational'})
+
+        requests_pending = ElevatorRequest.objects.filter(elevator=elevator, is_active=True).order_by('request_time')
+
+        if requests_pending.count() == 0:
+            return Response({'running': False, 'details': 'The Elevator is not running currently, No pending requests'})
+
+        if requests_pending[0].requested_floor == elevator.current_floor:
+            return Response({'running': True, 'details': str(requests_pending[0].destination_floor)})
+
+        return Response({'running': True, 'details': str(requests_pending[0].requested_floor)})
+
+        
+    @action(detail=True, methods=['get'])
+    def req_current_status(self, request, id=None, pk=None):
+        elevator = self.get_object()
+        elevator_requests = elevator.elevatorrequest_set.all()
+        serializer = ElevatorRequestFullSerializer(elevator_requests, many=True)
+        return Response(serializer.data)
+    
+    
+    @action(detail=True, methods=['post'], serializer_class=ElevatorRequestSerializer)
+    def make_request(self, request, id=None, pk=None):
+        elevator = self.get_object()
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(elevator=elevator)
+            return Response(serializer.data, status=201)
+        return Response(serializer.errors, status=400)
+
+
+    def get_serializer_class(self):
+        if self.action == 'make_request':
+            return ElevatorRequestSerializer
+        return super().get_serializer_class()
