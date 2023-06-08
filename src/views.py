@@ -50,7 +50,7 @@ class ElevatorViewSet(viewsets.ModelViewSet):
     serializer_class = ElevatorSerializer
 
     @action(detail=True, methods=['get'])
-    def show(self, request, pk=None):
+    def show(self, request, id=None, pk=None):
         system_id = self.kwargs['id']
         elevator_number = self.kwargs['pk']
         elevator = Elevator.objects.get(elevator_system_id=system_id, elevator_number=elevator_number)
@@ -59,7 +59,7 @@ class ElevatorViewSet(viewsets.ModelViewSet):
 
 
     @action(detail=True, methods=['put', 'patch'])
-    def custom_update(self, request, pk=None):
+    def custom_update(self, request, id=None, pk=None):
         system_id = self.kwargs['id']
         elevator_number = self.kwargs['pk']
         elevator = Elevator.objects.get(elevator_system__id=system_id, elevator_number=elevator_number)
@@ -94,9 +94,9 @@ class ElevatorViewSet(viewsets.ModelViewSet):
         elevator_requests = elevator.elevatorrequest_set.all()
         serializer = ElevatorRequestFullSerializer(elevator_requests, many=True)
         return Response(serializer.data)
+
     
-    
-    @action(detail=True, methods=['post'], serializer_class=ElevatorRequestSerializer)
+    @action(detail=True, methods=['post'])
     def make_request(self, request, id=None, pk=None):
         elevator = self.get_object()
         serializer = self.get_serializer(data=request.data)
