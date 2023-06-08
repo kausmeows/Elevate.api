@@ -1,6 +1,6 @@
-# [Elevate.api](https://youtu.be/hyohqbixph0)
+# [Elevate.api](https://youtu.be/ZZZ9MB3WszQ)
 
-[![Watch the video](assets/demo.png)](https://youtu.be/RPXv5qq_79g)
+[![Watch the video](assets/demo.png)](https://youtu.be/ZZZ9MB3WszQ)
 
 A simplified `elevator model` in Python. We'll ignore a lot of what goes into a real world elevator, like physics, maintenance overrides, and optimizations for traffic patterns. Main feature is to decide whether the elevator should go up, go down, or stop. 
 
